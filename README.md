@@ -57,13 +57,13 @@ A one-to-one real-time chat application built with **Next.js 14 (App Router) + T
 The Appwrite client SDK cannot list all registered auth users directly, so the app keeps a lightweight `profiles` table (one row per signed-up user) to power the user list.
 
 1. Inside your database, **Create table** → name it `profiles`. Copy its **Table ID**.
-2. Go to its **Columns** tab and add three String columns:
+2. Go to its **Columns** tab and add three **Varchar** columns (not "String" — that type is deprecated in newer Appwrite consoles; not "Text" — that type can't be fully indexed):
 
-   | Key       | Type   | Size | Required |
-   |-----------|--------|------|----------|
-   | `userId`  | String | 64   | Yes      |
-   | `name`    | String | 128  | Yes      |
-   | `email`   | String | 128  | Yes      |
+   | Key       | Type    | Size | Required |
+   |-----------|---------|------|----------|
+   | `userId`  | Varchar | 64   | Yes      |
+   | `name`    | Varchar | 128  | Yes      |
+   | `email`   | Varchar | 128  | Yes      |
 
 3. **Permissions** (Settings tab of the table):
    - Add a permission for role **Users** with **Read** access, so any logged-in user can see the list of profiles.
@@ -72,17 +72,17 @@ The Appwrite client SDK cannot list all registered auth users directly, so the a
 ### 2.6 Create the `messages` table
 
 1. **Create table** → name it `messages`. Copy its **Table ID**.
-2. Go to its **Columns** tab and add five String columns:
+2. Go to its **Columns** tab and add five **Varchar** columns:
 
-   | Key              | Type   | Size | Required |
-   |------------------|--------|------|----------|
-   | `conversationId` | String | 128  | Yes      |
-   | `senderId`       | String | 64   | Yes      |
-   | `senderName`     | String | 128  | Yes      |
-   | `receiverId`     | String | 64   | Yes      |
-   | `content`        | String | 2000 | Yes      |
+   | Key              | Type    | Size | Required |
+   |------------------|---------|------|----------|
+   | `conversationId` | Varchar | 128  | Yes      |
+   | `senderId`       | Varchar | 64   | Yes      |
+   | `senderName`     | Varchar | 128  | Yes      |
+   | `receiverId`     | Varchar | 64   | Yes      |
+   | `content`        | Varchar | 2000 | Yes      |
 
-3. Add an **index** on `conversationId` (Indexes tab → Create index → key `conversationId`, type `key`, column `conversationId`) so conversation lookups stay fast.
+3. Add an **index** on `conversationId` (Indexes tab → Create index → key `conversationId`, type `key`, column `conversationId`) so conversation lookups stay fast. This only works because `conversationId` is Varchar and under 768 characters — Appwrite can only fully index Varchar columns in that size range (Text columns only support prefix indexing).
 4. **Permissions**: grant role **Users** both **Create** and **Read** access at the table level. (Every message a user can see is one they sent or received, so table-level read is fine for this app's scope — for stricter per-row access control you could instead enable Row Security and grant read/write to `user:<senderId>` and `user:<receiverId>` on each row.)
 
 ### 2.7 Copy your IDs into `.env.local`
